@@ -211,6 +211,57 @@ class AssignmentsController < ApplicationController
 
     redirect_to :action => "edit", :id => @assignment.id
   end
+
+  # Called when deleting an assignment  
+  def delete
+    @assignment = Assignment.find_by_id(params[:id])
+    @deleted_name = @assignment.short_identifier
+    m_logger = MarkusLogger.instance
+    
+    # See if we can delete
+    if(@assignment.submissions.count > 0) # Don't delete if we have submissions
+      flash[:fail_notice] = I18n.t("assignment.cannot_delete_with_submissions")
+      redirect_to :action => 'edit', :id => @assignment.id
+      return
+    else # delete the assignment, and load a blank assignment form
+      
+      begin # remove all groups
+        if @grouping.nil?
+          raise I18n.t('create_group.fail.do_not_have_a_group')
+        end
+        # If grouping is not deletable for @current_user for whatever reason, fail.
+        if !@grouping.deletable_by?(@current_user)
+          raise I18n.t('groups.cant_delete')
+        end
+        if @grouping.has_submission?
+          raise I18n.t('groups.cant_delete_already_submitted')
+        end
+        @grouping.student_memberships.all(:include => :user).each do |member|
+          member.destroy
+        end
+        # update repository permissions
+        @grouping.update_repository_permissions
+        @grouping.destroy
+        flash[:edit_notice] = I18n.t('assignment.group.deleted')
+        m_logger.log("Student '#{current_user.user_name}' deleted group '" +
+                     "#{@grouping.group.group_name}'.", MarkusLogger::INFO)
+      rescue RuntimeError => e
+        flash[:fail_notice] = e.message
+        if @grouping.nil?
+          m_logger.log(
+             "Failed to delete group, since no accepted group for this user existed." +
+             "User: '#{current_user.user_name}', Error: '#{e.message}'.", MarkusLogger::ERROR)
+        else
+          m_logger.log("Failed to delete group '#{@grouping.group.group_name}'. User: '" +
+                       "#{current_user.user_name}', Error: '#{e.message}'.", MarkusLogger::ERROR)
+        end
+
+      end
+      flash[:success] = @assignment.short_identifier, I18n.t("assignment.delete_success")
+      redirect_to :action => 'new'
+      return
+    end
+  end
   
   def update_group_properties_on_persist
     @assignment = Assignment.find(params[:assignment_id])

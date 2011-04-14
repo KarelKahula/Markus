@@ -88,6 +88,7 @@ en:
     create_new_assignment:      "Add Assignment"
     manage_course_work: "Manage Course Work"
     repository_folder:  "Repository Folder"
+    delete_assignment: "Delete Assignment"
     marking_state:
       not_collected: "Not Collected"
       in_progress: "In Progress"
@@ -973,6 +974,7 @@ en:
     students_without_a_group_list_message: "These students don't have a group yet:"
     no_students_without_a_group_message: "All students are in a group."
     past_due_date_warning: "Due date for this assignment is in the past."
+    assignment_is_deleted: " has been deleted."
 
     section:
       name: "Name"

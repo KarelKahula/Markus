@@ -242,6 +242,15 @@
 </fieldset>
 
 <%= f.submit t(:submit) %>
+
+<% if !@assignment.id.nil? %>
+  <%= link_to t("delete_assignment"),  
+       {:controller => 'assignments', 
+       :action => 'delete',
+       :id => @assignment.id},
+       :class => "button" %>
+<% end %>
+
 <% end %>
 
 </div>
